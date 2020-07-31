@@ -1,0 +1,15 @@
+{
+  "name": "postmessage-harness",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:host": "http-server ./host -p 3000",
+    "start:embeds": "http-server ./embeds -p 3001"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "^0.12.3"
+  }
+}

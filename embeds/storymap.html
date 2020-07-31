@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Embeded Storymap</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="/js/logger.js"></script>
+    <link rel="stylesheet" href="./css/styles.css">
+  </head>
+  <body>
+    <small id="location"></small>
+    <h1>Story App</h1>
+    
+    <p>This app will immediately request auth on load</p>
+
+    <div class="col-sm-4">
+      <h6>Log</h6>
+      <ul id="logger"></ul>
+    </div>
+
+    <script>
+      // put location in DOM so we can see it
+      document.querySelector('#location').innerText = window.location;
+      // Parse up any url params
+      let params = new URLSearchParams(document.location.search.substring(1));
+      const embedStyle = params.get('embed');
+      // if embed is on same origin as host, we could get this from window.parent.location
+      // but if the host or port differs, cross-origin rules apply and that is blocked
+      // so we have to pass in the url
+      const parentOrigin = params.get('parentOrigin');   
+      // once this is loaded, call parent...
+      window.onload = function () {
+        if  (window.parent && embedStyle === 'iframe') {
+          appendToLog(`got window.parent, sending message to ${parentOrigin} asking for auth...`);
+          // only add listener if we have a parent
+          window.addEventListener("message", receiveMessage, false);
+          // request the credential
+          window.parent.postMessage({type: 'requestCredential'}, parentOrigin);
+        } else {
+          appendToLog('no window.parent not asking for any auth');
+        }
+      };
+
+    // Handler for response
+    function receiveMessage(event) {
+      if (event.data.type === 'credential') {
+        appendToLog(`storyapp recieved auth info: ${event.data.credential.token} from ${event.origin}`);
+      } else {
+        appendToLog(`storyapp invalid payload: ${JSON.stringify(event.data, null, 2)} from ${event.origin}`);
+      }
+    }
+    </script>
+  </body>
+</html>

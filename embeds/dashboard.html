@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Embeded Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="/js/logger.js"></script>
+    <link rel="stylesheet" href="./css/styles.css">
+  </head>
+  <body>
+    <small id="location"></small>
+    <h1>Dash App WTF</h1>
+    <p>This app will simulate sending the request after attempting to load an item.</p>
+    <button class="btn btn-primary" type="button" onclick="requestCredential()">Request Credential</button>
+    <div class="col-sm-4">
+        <h6>Log</h6>
+        <ul id="logger"></ul>
+    </div>
+
+    <script>
+      // put location in DOM so we can see it
+      document.querySelector('#location').innerText = window.location;
+      // Parse up any url params
+      let params = new URLSearchParams(document.location.search.substring(1));
+      const embedStyle = params.get('embed');
+      const parentOrigin = params.get('parentOrigin'); 
+
+      
+    function requestCredential() {
+      if  (window.parent) {
+        appendToLog('got window.parent, sending message asking for auth...');
+        // only add listener if we have a parent
+        window.addEventListener("message", receiveMessage, false);
+        window.parent.postMessage({type: 'requestCredential'}, parentOrigin);
+      } else {
+        appendToLog('no window.parent not asking for any auth');
+      }
+    }
+    function receiveMessage(event) {
+      if (event.data.type === 'credential') {
+        appendToLog(`dashapp recieved credential: ${event.data.credential.token} from ${event.origin}`);
+      } else {
+        appendToLog(`dashapp invalid payload: ${JSON.stringify(event.data, null, 2)} from ${event.origin}`);
+      }
+    }
+    </script>
+  </body>
+</html>

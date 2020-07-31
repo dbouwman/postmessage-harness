@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>postMessage: Host</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js" integrity="sha256-oE03O+I6Pzff4fiMqwEGHbdfcW7a3GRRxlL+U49L5sA=" crossorigin="anonymous"></script>
+    <script src="/js/logger.js"></script>
+    <style>
+      body {
+        padding-top: 50px;
+      }
+      #logger {
+  padding-inline-start: 0px;
+}
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">PostMessage Harness</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Protocol Example</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12">
+          <h1>PostMessage Protocol</h1>
+          
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <p>Valid Origins:</p>
+        <ul>
+          <li>http://storyapp.fakegis.com:3001</li>
+          <li>http://dashapp.fakegis.com:3001</li>
+        </ul>
+        <p>Requests from these origins will be processed. Any other origin will be ignored.</p>
+        <hr>
+        <h4>postMessage Log</h4>
+        <ul id="logger"></ul>
+      </div>
+      <div class="col-sm-8">
+        <iframe class="col-sm-12" name="storyappframe" src="http://storyapp.fakegis.com:3001/storymap?embed=iframe&parentOrigin=http://www.fakegis.com:3000" height="300px"></iframe>
+        <iframe class="col-sm-12" name="dashappframe" src="http://dashapp.fakegis.com:3001/dashboard?embed=iframe&parentOrigin=http://www.fakegis.com:3000" height="300px"></iframe>
+        <iframe class="col-sm-12" name="evilappframe" src="http://evilcorp.com:3001/evil?embed=iframe&parentOrigin=http://www.fakegis.com:3000" height="300px"></iframe>
+      </div>
+    
+       
+    </div>
+    <script>
+      // fake ICredential
+      const credential = {
+        token: 'FAKETOKEN',
+        username: 'lordvader'
+      }
+      // origins we will listen for
+      // in a real app this can be dynamically generated if the host app can
+      // derive this list in advance of actually injecting the <iframe>'s into 
+      // the DOM. We could also use a regex that limits this to platform urls
+      var validOrigins = [
+        'http://storyapp.fakegis.com:3001',
+        'http://dashapp.fakegis.com:3001'
+      ];
+      // Realistically we'd only want to register this handler if the host app
+      // knows it will be injecting iframed apps on valid origins
+      window.addEventListener("message", receiveMessage, false);
+      
+      // handle the messages
+      function receiveMessage(event) {
+        appendToLog(`Got ${event.data.type} message from ${event.origin}`);
+        if (validOrigins.indexOf(event.origin) > -1) { 
+          if(event.data.type === 'requestCredential') {
+            appendToLog(`Sending auth info to app on ${event.origin}`);
+            event.source.postMessage({type: 'credential', credential}, event.origin);
+          }else{
+            appendToLog(`Ignoring invalid message ${event.origin}`);
+          }
+        } else {
+          appendToLog(`Ignoring message from invalid origin ${event.origin}`);
+        }
+      }
+      
+      </script>
+  </body>
+</html>
